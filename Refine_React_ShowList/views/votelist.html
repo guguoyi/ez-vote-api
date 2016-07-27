@@ -1,0 +1,106 @@
+<html>
+    <head>
+	    <title>
+		   VOTE RESULT LIST
+	    </title>
+
+	    <link rel="stylesheet" type="text/css" href="../votelist.css">
+	    <script type="text/javascript" src="../jquery.2.js"></script>
+	    <script type="text/javascript" src="../votelist.js"></script>
+      <script src="../build/react.js"></script>
+      <script src="../build/react-dom.js"></script>
+      <script src="../build/browser.min.js"></script>
+      <script src="../build/pubsub.js"></script>
+    </head>
+
+    <body>
+    	<div class="main">
+    		<div class="left"></div>
+    		<div class="content" id="content"></div>
+    		<div class="right"></div>
+    	</div>
+ 
+    	<div class="poperover" id="poperover"></div>
+
+      <script type="text/babel">
+
+        var Results = React.createClass({
+          getInitialState : function() {
+            return {data : []}
+          },
+
+          componentDidMount: function () {
+            this.pubsub_token = PubSub.subscribe('setdata', function (topic, data) {
+              this.setState({data : data});   
+            }.bind(this))  
+          },
+
+          componentWillUnmount: function () {
+            PubSub.unsubscribe(this.pubsub_token)
+          },
+
+          render : function() {
+
+            var data = this.state.data;
+
+            return (
+              <div className="choice_results">
+                {
+                  data.map(function(item) {
+                    return (
+                      <div className="item">
+                          <div>{item.username}</div>
+                          <div>{item.choice_name}</div>
+                          <div>{item.price}</div>
+                          <div>{item.count}</div>
+                      </div>     
+                    )
+                  })
+                }
+              </div>
+            )
+          }
+        });
+
+
+        var SubmitPopover = React.createClass({
+
+          onClick : function() {
+            $.post("http://127.0.0.1:8888/choices", {  
+                username: 'Logan',
+                choice_name: 'Mongo',
+                price: '5',
+                count: 1
+              }, function (items) {
+                PubSub.publish('setdata', items);
+              }
+             )
+          },
+
+          render : function() {
+            return (
+             <div>
+                <div className="gooditem">
+                  <span>Tea with milk</span>
+                  <input type="text" className="count" name="twm#1" placeholder="Please input your count" />
+                  <input type="checkbox"/>
+                </div>
+                <input type="button" value="Submit" id="submit_choices" onClick={this.onClick}/>
+             </div>
+            )
+          }
+        });
+
+
+        ReactDOM.render(
+          <Results></Results>,
+          document.getElementById('content')
+        );
+
+        ReactDOM.render(
+          <SubmitPopover></SubmitPopover>,
+          document.getElementById('poperover')
+        );
+      </script>
+    </body>
+</html>
